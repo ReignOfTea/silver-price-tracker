@@ -1,0 +1,29 @@
+[
+    {
+        "name": "gold-api",
+        "url": "https://api.gold-api.com/price/XAG",
+        "price-path": "price",
+        "time-path": "updatedAt",
+        "authentication": "none",
+        "priority": 1,
+        "description": "Primary API - No auth required"
+    },
+    {
+        "name": "metalpriceapi",
+        "url": "https://api.metalpriceapi.com/v1/latest?base=USD&currencies=XAG&api_key={metalpriceapi}",
+        "price-path": "rates.USDXAG",
+        "time-path": "timestamp",
+        "authentication": "metalpriceapi",
+        "priority": 2,
+        "description": "Free tier available, requires registration"
+    },
+    {
+        "name": "alpha-vantage",
+        "url": "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SLV&apikey={vantage}",
+        "price-path": "Global Quote.05. price",
+        "time-path": "Global Quote.07. latest trading day",
+        "authentication": "vantage",
+        "priority": 4,
+        "description": "25 calls/day free"
+    }
+]
