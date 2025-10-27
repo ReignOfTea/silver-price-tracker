@@ -1,0 +1,16 @@
+{
+    "bart": {
+        "recipientName": "Bartłomiej",
+        "giverName": "Luke",
+        "giftDate": "2024-09-23",
+        "silverAmount": "5 oz",
+        "initialPrice": 46.75
+    },
+    "fred": {
+        "recipientName": "FRED",
+        "giverName": "Luke",
+        "giftDate": "2022-12-25",
+        "silverAmount": "1 oz",
+        "initialPrice": 46.75
+    }
+}

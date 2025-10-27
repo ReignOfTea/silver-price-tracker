@@ -1,0 +1,139 @@
+name: Update Silver Price with Error Logging
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  update-price:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Silver Price with Error Logging
+        run: |
+          DATE=$(date -u +"%Y-%m-%d")
+          TIME=$(date -u +"%H:%M:%S")
+          TIMESTAMP="${DATE}T${TIME}Z"
+          PRICE=""
+          SOURCE=""
+          SUCCESS=false
+          ERROR_LOG=""
+
+          echo "🚀 Starting silver price fetch at $TIMESTAMP"
+
+          # Try gold-api.com with multiple attempts
+          for attempt in {1..5}; do
+            echo "Attempt $attempt: Trying gold-api.com..."
+
+            if RESPONSE=$(curl -s --max-time 30 --retry 3 "https://api.gold-api.com/price/XAG" 2>&1); then
+              if PRICE=$(echo "$RESPONSE" | jq -r '.price' 2>/dev/null) && [[ "$PRICE" != "null" ]] && [[ "$PRICE" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+                # Validate price is reasonable
+                if echo "$PRICE >= 10 && $PRICE <= 200" | bc -l | grep -q 1; then
+                  SOURCE="gold-api"
+                  SUCCESS=true
+                  echo "✅ Got valid price: $PRICE"
+                  break
+                else
+                  ERROR_MSG="Price $PRICE outside reasonable range (10-200)"
+                  echo "⚠️ $ERROR_MSG"
+                  ERROR_LOG="$ERROR_LOG\nAttempt $attempt: $ERROR_MSG"
+                  PRICE=""
+                fi
+              else
+                ERROR_MSG="Invalid JSON response or missing price field"
+                echo "❌ $ERROR_MSG"
+                echo "Response: $RESPONSE"
+                ERROR_LOG="$ERROR_LOG\nAttempt $attempt: $ERROR_MSG - Response: $(echo "$RESPONSE" | head -c 200)"
+              fi
+            else
+              ERROR_MSG="HTTP request failed"
+              echo "❌ $ERROR_MSG"
+              echo "Response: $RESPONSE"
+              ERROR_LOG="$ERROR_LOG\nAttempt $attempt: $ERROR_MSG - $(echo "$RESPONSE" | head -c 200)"
+            fi
+
+            if [[ $attempt -lt 5 ]]; then
+              echo "Waiting $((attempt * 2)) seconds before retry..."
+              sleep $((attempt * 2))
+            fi
+          done
+
+          # Log the outcome
+          if [[ "$SUCCESS" == "true" ]]; then
+            echo "✅ SUCCESS: Got reliable price data: $PRICE from $SOURCE"
+
+            # Update daily prices only
+            echo "{\"date\":\"$DATE\",\"price\":$PRICE,\"source\":\"$SOURCE\"}" > today.json
+
+            if [ ! -f data/daily-prices.json ]; then
+              echo "[]" > data/daily-prices.json
+            fi
+
+            # Only add if we don't already have data for today
+            if ! jq -e --arg date "$DATE" '.[] | select(.date == $date)' data/daily-prices.json > /dev/null; then
+              jq --slurpfile today today.json '
+                . + $today | 
+                sort_by(.date) | 
+                if length > 730 then .[-730:] else . end
+              ' data/daily-prices.json > temp.json && mv temp.json data/daily-prices.json
+              echo "📊 Added price data for $DATE"
+            else
+              echo "📅 Already have data for $DATE, skipping duplicate"
+            fi
+
+            rm today.json
+
+          else
+            echo "❌ FAILED: No reliable data available after all attempts"
+
+            # Log the error
+            ERROR_ENTRY=$(cat << EOF
+          {
+            "timestamp": "$TIMESTAMP",
+            "date": "$DATE",
+            "error": "Failed to fetch silver price after 5 attempts",
+            "details": "$ERROR_LOG",
+            "api_endpoint": "https://api.gold-api.com/price/XAG"
+          }
+          EOF
+            )
+
+            # Create or update error log
+            if [ ! -f data/error-log.json ]; then
+              echo "[]" > data/error-log.json
+            fi
+
+            # Add error and keep last 1000 entries
+            echo "$ERROR_ENTRY" > error-entry.json
+            jq --slurpfile error error-entry.json '
+              . + $error | 
+              sort_by(.timestamp) | 
+              if length > 1000 then .[-1000:] else . end
+            ' data/error-log.json > temp-errors.json && mv temp-errors.json data/error-log.json
+
+            rm error-entry.json
+
+            echo "📝 Logged error to data/error-log.json"
+          fi
+
+      - name: Commit Changes
+        run: |
+          # Check if we have any changes to commit
+          if git diff --quiet data/; then
+            echo "No changes to commit"
+          else
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add data/
+
+            # Create appropriate commit message based on success/failure
+            if [[ "$SUCCESS" == "true" ]]; then
+              git commit -m "Silver: \$$PRICE from $SOURCE on $DATE"
+            else
+              git commit -m "Error log update: Failed to fetch silver price on $DATE"
+            fi
+
+            git push
+            echo "✅ Committed changes"
+          fi
