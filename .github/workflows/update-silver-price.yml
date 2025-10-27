@@ -3,6 +3,8 @@ on:
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
+  push:
+    branches: [master]
 
 jobs:
   update-price:
@@ -28,7 +30,6 @@ jobs:
 
             if RESPONSE=$(curl -s --max-time 30 --retry 3 "https://api.gold-api.com/price/XAG" 2>&1); then
               if PRICE=$(echo "$RESPONSE" | jq -r '.price' 2>/dev/null) && [[ "$PRICE" != "null" ]] && [[ "$PRICE" =~ ^[0-9]+\.?[0-9]*$ ]]; then
-                # Validate price is reasonable
                 if echo "$PRICE >= 10 && $PRICE <= 200" | bc -l | grep -q 1; then
                   SOURCE="gold-api"
                   SUCCESS=true
@@ -63,14 +64,12 @@ jobs:
           if [[ "$SUCCESS" == "true" ]]; then
             echo "✅ SUCCESS: Got reliable price data: $PRICE from $SOURCE"
 
-            # Update daily prices only
             echo "{\"date\":\"$DATE\",\"price\":$PRICE,\"source\":\"$SOURCE\"}" > today.json
 
             if [ ! -f data/daily-prices.json ]; then
               echo "[]" > data/daily-prices.json
             fi
 
-            # Only add if we don't already have data for today
             if ! jq -e --arg date "$DATE" '.[] | select(.date == $date)' data/daily-prices.json > /dev/null; then
               jq --slurpfile today today.json '
                 . + $today | 
@@ -87,7 +86,6 @@ jobs:
           else
             echo "❌ FAILED: No reliable data available after all attempts"
 
-            # Log the error
             ERROR_ENTRY=$(cat << EOF
           {
             "timestamp": "$TIMESTAMP",
@@ -99,12 +97,10 @@ jobs:
           EOF
             )
 
-            # Create or update error log
             if [ ! -f data/error-log.json ]; then
               echo "[]" > data/error-log.json
             fi
 
-            # Add error and keep last 1000 entries
             echo "$ERROR_ENTRY" > error-entry.json
             jq --slurpfile error error-entry.json '
               . + $error | 
@@ -119,7 +115,6 @@ jobs:
 
       - name: Commit Changes
         run: |
-          # Check if we have any changes to commit
           if git diff --quiet data/; then
             echo "No changes to commit"
           else
@@ -127,7 +122,6 @@ jobs:
             git config --local user.name "GitHub Action"
             git add data/
 
-            # Create appropriate commit message based on success/failure
             if [[ "$SUCCESS" == "true" ]]; then
               git commit -m "Silver: \$$PRICE from $SOURCE on $DATE"
             else
