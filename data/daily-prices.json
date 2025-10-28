@@ -1,42 +1,47 @@
 [
-    {
-        "date": "2025-10-20",
-        "price": 46.50,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-21",
-        "price": 46.75,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-22",
-        "price": 47.10,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-23",
-        "price": 46.90,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-24",
-        "price": 47.25,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-25",
-        "price": 47.50,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-26",
-        "price": 47.80,
-        "source": "gold-api"
-    },
-    {
-        "date": "2025-10-27",
-        "price": 48.00,
-        "source": "gold-api"
-    }
+  {
+    "date": "2025-10-20",
+    "price": 46.50,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-21",
+    "price": 46.75,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-22",
+    "price": 47.10,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-23",
+    "price": 46.90,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-24",
+    "price": 47.25,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-25",
+    "price": 47.50,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-26",
+    "price": 47.80,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-27",
+    "price": 48.00,
+    "source": "gold-api"
+  },
+  {
+    "date": "2025-10-28",
+    "price": 47.129002,
+    "source": "gold-api"
+  }
 ]
