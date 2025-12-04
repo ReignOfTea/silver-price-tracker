@@ -223,5 +223,10 @@
     "date": "2025-12-03",
     "price": 58.344002,
     "source": "gold-api"
+  },
+  {
+    "date": "2025-12-04",
+    "price": 58.536999,
+    "source": "gold-api"
   }
 ]
