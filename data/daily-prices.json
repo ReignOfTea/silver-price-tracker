@@ -358,5 +358,10 @@
     "date": "2025-12-30",
     "price": 73.309998,
     "source": "gold-api"
+  },
+  {
+    "date": "2025-12-31",
+    "price": 75.820999,
+    "source": "gold-api"
   }
 ]
