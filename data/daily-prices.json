@@ -408,5 +408,10 @@
     "date": "2026-01-09",
     "price": 77.317001,
     "source": "gold-api"
+  },
+  {
+    "date": "2026-01-10",
+    "price": 79.960999,
+    "source": "gold-api"
   }
 ]
