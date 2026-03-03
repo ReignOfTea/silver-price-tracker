@@ -668,5 +668,10 @@
     "date": "2026-03-02",
     "price": 93.860001,
     "source": "gold-api"
+  },
+  {
+    "date": "2026-03-03",
+    "price": 89.861,
+    "source": "gold-api"
   }
 ]
