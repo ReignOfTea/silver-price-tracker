@@ -1943,5 +1943,10 @@
     "date": "2026-11-12",
     "price": 51.637001,
     "source": "gold-api"
+  },
+  {
+    "date": "2026-11-13",
+    "price": 49.873001,
+    "source": "gold-api"
   }
 ]
